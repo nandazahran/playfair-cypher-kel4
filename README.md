@@ -1,4 +1,4 @@
-# 🔐 Playfair Cipher — Python GUI
+# 🔐 Playfair Cipher Kelompok 4
 
 **Aplikasi enkripsi dan dekripsi Playfair Cipher dengan antarmuka grafis interaktif menggunakan Python dan CustomTkinter.**
 
@@ -141,7 +141,7 @@ Aplikasi menampilkan aturan yang digunakan pada setiap bigram dan menyorot posis
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/USERNAME/playfair-cipher.git
+git clone https://github.com/nandazahran/playfair-cypher-kel4.git
 cd playfair-cipher
 ```
 
