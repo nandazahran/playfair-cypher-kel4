@@ -3,9 +3,6 @@ from tkinter import filedialog, messagebox
 import os
 from playfair_core import enkripsi, dekripsi, buat_matriks, cari_posisi
 
-# ============================================
-# KONFIGURASI TEMA
-# ============================================
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -25,9 +22,6 @@ LABEL_ATURAN = {
     "Rectangle": "Rectangle",
 }
 
-# ============================================
-# VARIABEL GLOBAL
-# ============================================
 teks_dari_file = ""
 path_file = ""
 label_matriks_cells = []
@@ -37,12 +31,8 @@ animasi_output_id = None
 proses_ids = []
 sedang_memproses = False
 
-# ============================================
-# VALIDASI
-# ============================================
 
 def validasi_input(mode):
-    """Validasi input sebelum diproses."""
     key = entry_key.get().strip()
     teks = textbox_input.get("1.0", "end").strip()
     
@@ -85,7 +75,6 @@ def validasi_input(mode):
 
 
 def peringatan_huruf_hilang(teks_asli):
-    """Cek apakah ada karakter yang akan hilang saat preprocessing."""
     huruf = ''.join([c for c in teks_asli if c.isalpha()])
     non_huruf = len(teks_asli) - len(huruf)
     
@@ -96,9 +85,6 @@ def peringatan_huruf_hilang(teks_asli):
     return False
 
 
-# ============================================
-# FUNGSI GUI
-# ============================================
 
 def batalkan_animasi(daftar_id):
     while daftar_id:
@@ -426,9 +412,6 @@ def reset_semua():
     label_status.configure(text="🔄 Aplikasi direset.", text_color=WARNA_MUTED)
 
 
-# ============================================
-# MEMBANGUN GUI
-# ============================================
 app = ctk.CTk()
 app.title("Playfair Cipher - Enkripsi & Dekripsi")
 app.geometry("1250x820")
@@ -437,7 +420,6 @@ app.minsize(1100, 720)
 judul = ctk.CTkLabel(app, text="🔐 PLAYFAIR CIPHER", font=("Roboto", 24, "bold"))
 judul.pack(pady=(12, 8))
 
-# ----- FRAME KEY -----
 frame_key = ctk.CTkFrame(app)
 frame_key.pack(pady=5, padx=20, fill="x")
 
@@ -454,7 +436,6 @@ btn_reset = ctk.CTkButton(
 )
 btn_reset.pack(side="right", padx=15, pady=10)
 
-# ----- FRAME FILE -----
 frame_file = ctk.CTkFrame(app)
 frame_file.pack(pady=5, padx=20, fill="x")
 
@@ -464,11 +445,9 @@ btn_upload.pack(side="left", padx=(15, 10), pady=10)
 label_file = ctk.CTkLabel(frame_file, text="Belum ada file dipilih", font=("Roboto", 11))
 label_file.pack(side="left", padx=10, pady=10)
 
-# ----- AREA UTAMA -----
 frame_utama = ctk.CTkFrame(app)
 frame_utama.pack(pady=10, padx=20, fill="both", expand=True)
 
-# Kiri
 frame_kiri = ctk.CTkFrame(frame_utama, width=350)
 frame_kiri.pack(side="left", fill="both", expand=True, padx=(10, 5), pady=10)
 
@@ -484,7 +463,6 @@ label_output.pack(pady=(10, 5))
 textbox_output = ctk.CTkTextbox(frame_kiri, wrap="word", height=140, font=("Roboto", 12))
 textbox_output.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
-# Tengah
 frame_tengah = ctk.CTkFrame(frame_utama, width=380)
 frame_tengah.pack(side="left", fill="y", padx=5, pady=10)
 frame_tengah.pack_propagate(False)
@@ -520,14 +498,12 @@ label_detail = ctk.CTkLabel(
 )
 label_detail.pack(pady=12, padx=10)
 
-# Kanan
 frame_kanan = ctk.CTkFrame(frame_utama, width=380)
 frame_kanan.pack(side="right", fill="both", expand=True, padx=(5, 10), pady=10)
 
 frame_log_list = ctk.CTkScrollableFrame(frame_kanan, fg_color="#0f172a")
 frame_log_list.pack(fill="both", expand=True, padx=5, pady=5)
 
-# ----- AKSI -----
 frame_aksi = ctk.CTkFrame(app)
 frame_aksi.pack(pady=(5, 2), padx=20, fill="x")
 
@@ -549,7 +525,6 @@ btn_simpan = ctk.CTkButton(
 )
 btn_simpan.pack(side="right", padx=15, pady=12)
 
-# ----- STATUS DAN PROGRESS ANIMASI -----
 progress_proses = ctk.CTkProgressBar(app, height=7, progress_color="#3b82f6")
 progress_proses.pack(fill="x", padx=35, pady=(3, 2))
 progress_proses.set(0)
