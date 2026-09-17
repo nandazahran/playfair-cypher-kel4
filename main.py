@@ -9,17 +9,16 @@ from playfair_core import enkripsi, dekripsi, buat_matriks, cari_posisi
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-# ============================================
-# WARNA ATURAN
-# ============================================
 WARNA_ATURAN = {
-    "Same Row": "#3b82f6",       # Biru
-    "Same Column": "#10b981",    # Hijau
-    "Rectangle": "#f59e0b",      # Oranye
+    "Same Row": "#3b82f6",
+    "Same Column": "#10b981",
+    "Rectangle": "#f59e0b",
 }
 WARNA_DEFAULT = "#1f538d"
+WARNA_MUTED = "#94a3b8"
+WARNA_HIJAU = "#4ade80"
+WARNA_MERAH = "#ef4444"
 
-# Label singkat untuk tampilan log
 LABEL_ATURAN = {
     "Same Row": "Same Row",
     "Same Column": "Same Col",
@@ -33,6 +32,10 @@ teks_dari_file = ""
 path_file = ""
 label_matriks_cells = []
 log_data = []
+animasi_matriks_ids = []
+animasi_output_id = None
+proses_ids = []
+sedang_memproses = False
 
 # ============================================
 # VALIDASI
@@ -97,93 +100,117 @@ def peringatan_huruf_hilang(teks_asli):
 # FUNGSI GUI
 # ============================================
 
+def batalkan_animasi(daftar_id):
+    while daftar_id:
+        animation_id = daftar_id.pop()
+        try:
+            app.after_cancel(animation_id)
+        except Exception:
+            pass
+
+
+def atur_tombol_aksi(state):
+    btn_enkripsi.configure(state=state)
+    btn_dekripsi.configure(state=state)
+    btn_simpan.configure(state=state)
+    btn_upload.configure(state=state)
+    btn_reset.configure(state=state)
+
+
+
+
 def update_matriks(*args):
+    batalkan_animasi(animasi_matriks_ids)
     key = entry_key.get().strip()
     matriks = buat_matriks(key) if key else buat_matriks("A")
-    for i in range(5):
-        for j in range(5):
-            label_matriks_cells[i][j].configure(text=matriks[i][j], fg_color=WARNA_DEFAULT)
+
+    for index, label in enumerate(cell for row in label_matriks_cells for cell in row):
+        i, j = divmod(index, 5)
+        label.configure(text="·", fg_color="#334155", text_color=WARNA_MUTED)
+
+        def tampilkan_huruf(cell=label, huruf=matriks[i][j]):
+            cell.configure(text=huruf, fg_color=WARNA_DEFAULT, text_color="white")
+
+        animasi_matriks_ids.append(app.after(index * 16, tampilkan_huruf))
 
 
 def reset_warna_matriks():
-    for i in range(5):
-        for j in range(5):
-            label_matriks_cells[i][j].configure(fg_color=WARNA_DEFAULT)
+    for row in label_matriks_cells:
+        for cell in row:
+            cell.configure(fg_color=WARNA_DEFAULT, text_color="white")
 
 
 def highlight_bigram(bigram):
     reset_warna_matriks()
     key = entry_key.get().strip()
     matriks = buat_matriks(key) if key else buat_matriks("A")
-    
+
     for huruf in bigram:
         pos = cari_posisi(matriks, huruf)
-        if pos:
-            i, j = pos
-            label_matriks_cells[i][j].configure(fg_color="#ef4444")
+        if not pos:
+            continue
+        i, j = pos
+        cell = label_matriks_cells[i][j]
+        cell.configure(fg_color=WARNA_MERAH, text_color="white")
+        app.after(110, lambda target=cell: target.configure(fg_color="#ffffff", text_color="#111827"))
+        app.after(220, lambda target=cell: target.configure(fg_color=WARNA_MERAH, text_color="white"))
 
 
 def pilih_step(index):
     step = log_data[index]
     highlight_bigram(step["bigram"])
-    
+
     warna = "#64748b"
-    for k, v in WARNA_ATURAN.items():
-        if k in step["aturan"]:
-            warna = v
+    for nama_aturan, warna_aturan in WARNA_ATURAN.items():
+        if nama_aturan in step["aturan"]:
+            warna = warna_aturan
             break
-    
+
     detail_text = (
         f"Langkah #{index + 1}\n"
         f"─────────────────\n"
         f"Bigram   : {step['bigram']}\n"
         f"Aturan   : {step['aturan']}\n"
-        f"Hasil    : {step['hasil']}\n"
+        f"Hasil    : {step['hasil']}"
     )
     label_detail.configure(text=detail_text, text_color="white")
     frame_detail.configure(border_color=warna)
+    label_status.configure(text=f"Langkah #{index + 1} dipilih.", text_color=warna)
 
 
 def tampilkan_log_gui(log, mode="ENKRIPSI"):
-    """Tampilkan log langkah bigram sebagai tombol yang bisa diklik.
-       Aturan ditampilkan lengkap (Same Row / Same Col / Rectangle).
-    """
     global log_data
     log_data = log
-    
-    # Hapus widget lama
+
     for widget in frame_log_list.winfo_children():
         widget.destroy()
-    
-    # Header
+
     header = ctk.CTkLabel(
         frame_log_list,
         text=f"📋 Langkah {mode.title()} ({len(log)} bigram)",
-        font=("Arial", 12, "bold"),
-        text_color="#e2e8f0"
+        font=("Roboto", 12, "bold"),
+        text_color="#e2e8f0",
     )
     header.pack(pady=(5, 8), anchor="w", padx=5)
-    
-    # Tombol per langkah
+
     for idx, step in enumerate(log):
         warna = "#334155"
         nama_singkat = step["aturan"]
-        
-        for k, v in WARNA_ATURAN.items():
-            if k in step["aturan"]:
-                warna = v
-                nama_singkat = LABEL_ATURAN.get(k, k)
+        for nama_aturan, warna_aturan in WARNA_ATURAN.items():
+            if nama_aturan in step["aturan"]:
+                warna = warna_aturan
+                nama_singkat = LABEL_ATURAN.get(nama_aturan, nama_aturan)
                 break
-        
+
         btn = ctk.CTkButton(
             frame_log_list,
-            text=f" [{idx+1}]  {step['bigram']}  →  {step['hasil']}   ({nama_singkat})",
-            font=("Consolas", 11),
+            text=f" [{idx + 1}]  {step['bigram']}  →  {step['hasil']}   ({nama_singkat})",
+            font=("Roboto", 11),
             anchor="w",
             fg_color=warna,
             hover_color="#475569",
             height=32,
-            command=lambda i=idx: pilih_step(i)
+            command=lambda i=idx: pilih_step(i),
         )
         btn.pack(fill="x", pady=2, padx=5)
 
@@ -248,64 +275,91 @@ def upload_file():
         messagebox.showerror("Error", f"Gagal membaca file:\n{e}")
 
 
-def proses_enkripsi():
-    validasi = validasi_input("enkripsi")
-    if validasi is None:
-        return
-    
-    key, teks = validasi
-    
-    try:
-        matriks, hasil, log = enkripsi(teks, key)
-    except Exception as e:
-        messagebox.showerror("Error Enkripsi", f"Terjadi kesalahan:\n{e}")
-        return
-    
+def tampilkan_output_bertahap(hasil, selesai):
+    global animasi_output_id
     textbox_output.delete("1.0", "end")
-    textbox_output.insert("1.0", hasil)
-    
-    tampilkan_log_gui(log, "ENKRIPSI")
+    ukuran_chunk = max(1, len(hasil) // 30)
+
+    def ketik(posisi=0):
+        global animasi_output_id
+        if posisi >= len(hasil):
+            animasi_output_id = None
+            selesai()
+            return
+        textbox_output.insert("end", hasil[posisi:posisi + ukuran_chunk])
+        textbox_output.see("end")
+        animasi_output_id = app.after(18, lambda: ketik(posisi + ukuran_chunk))
+
+    ketik()
+
+
+def selesaikan_proses(mode, hasil, log):
+    global sedang_memproses
+    tampilkan_log_gui(log, mode)
     reset_warna_matriks()
     label_detail.configure(
         text="Klik salah satu langkah\ndi panel kanan untuk detail.",
-        text_color="gray"
+        text_color="gray",
     )
     frame_detail.configure(border_color="#475569")
-    
+    progress_proses.set(1)
     label_status.configure(
-        text=f"✅ Enkripsi selesai ({len(log)} bigram diproses)",
-        text_color="#4ade80"
+        text=f"✅ {mode.title()} selesai ({len(log)} bigram diproses)",
+        text_color=WARNA_HIJAU,
     )
+    sedang_memproses = False
+    atur_tombol_aksi("normal")
+
+
+def jalankan_proses(mode):
+    global sedang_memproses
+    if sedang_memproses:
+        return
+
+    validasi = validasi_input(mode.lower())
+    if validasi is None:
+        return
+
+    key, teks = validasi
+    try:
+        _, hasil, log = (enkripsi(teks, key) if mode == "ENKRIPSI" else dekripsi(teks, key))
+    except Exception as e:
+        messagebox.showerror(f"Error {mode.title()}", f"Terjadi kesalahan:\n{e}")
+        return
+
+    sedang_memproses = True
+    atur_tombol_aksi("disabled")
+    label_status.configure(text=f"Memulai {mode.lower()}...", text_color="#60a5fa")
+    progress_proses.set(0)
+
+    tahap = [
+        (0.12, "Membaca input"),
+        (0.38, "Menyusun matriks"),
+        (0.68, "Memproses bigram"),
+        (0.90, "Menyiapkan hasil"),
+    ]
+
+    for index, (nilai, pesan) in enumerate(tahap):
+        proses_ids.append(app.after(
+            index * 145,
+            lambda value=nilai, text=pesan: (
+                progress_proses.set(value),
+                label_status.configure(text=f"{text}...", text_color="#60a5fa"),
+            ),
+        ))
+
+    proses_ids.append(app.after(
+        len(tahap) * 145,
+        lambda: tampilkan_output_bertahap(hasil, lambda: selesaikan_proses(mode, hasil, log)),
+    ))
+
+
+def proses_enkripsi():
+    jalankan_proses("ENKRIPSI")
 
 
 def proses_dekripsi():
-    validasi = validasi_input("dekripsi")
-    if validasi is None:
-        return
-    
-    key, teks = validasi
-    
-    try:
-        matriks, hasil, log = dekripsi(teks, key)
-    except Exception as e:
-        messagebox.showerror("Error Dekripsi", f"Terjadi kesalahan:\n{e}")
-        return
-    
-    textbox_output.delete("1.0", "end")
-    textbox_output.insert("1.0", hasil)
-    
-    tampilkan_log_gui(log, "DEKRIPSI")
-    reset_warna_matriks()
-    label_detail.configure(
-        text="Klik salah satu langkah\ndi panel kanan untuk detail.",
-        text_color="gray"
-    )
-    frame_detail.configure(border_color="#475569")
-    
-    label_status.configure(
-        text=f"✅ Dekripsi selesai ({len(log)} bigram diproses)",
-        text_color="#4ade80"
-    )
+    jalankan_proses("DEKRIPSI")
 
 
 def simpan_hasil():
@@ -343,27 +397,33 @@ def simpan_hasil():
 
 
 def reset_semua():
-    konfirmasi = messagebox.askyesno("Reset", 
-        "Yakin ingin reset semua input dan hasil?")
+    global animasi_output_id, sedang_memproses
+    konfirmasi = messagebox.askyesno("Reset", "Yakin ingin reset semua input dan hasil?")
     if not konfirmasi:
         return
-    
+
+    if animasi_output_id:
+        app.after_cancel(animasi_output_id)
+        animasi_output_id = None
+    batalkan_animasi(proses_ids)
+    sedang_memproses = False
+    atur_tombol_aksi("normal")
     entry_key.delete(0, "end")
     textbox_input.delete("1.0", "end")
     textbox_output.delete("1.0", "end")
     label_file.configure(text="Belum ada file dipilih")
-    
+
     for widget in frame_log_list.winfo_children():
         widget.destroy()
-    
+
     label_detail.configure(
         text="Klik salah satu langkah\ndi panel kanan untuk detail.",
-        text_color="gray"
+        text_color="gray",
     )
     frame_detail.configure(border_color="#475569")
-    
+    progress_proses.set(0)
     update_matriks()
-    label_status.configure(text="🔄 Aplikasi direset.", text_color="#94a3b8")
+    label_status.configure(text="🔄 Aplikasi direset.", text_color=WARNA_MUTED)
 
 
 # ============================================
@@ -374,23 +434,23 @@ app.title("Playfair Cipher - Enkripsi & Dekripsi")
 app.geometry("1250x820")
 app.minsize(1100, 720)
 
-judul = ctk.CTkLabel(app, text="🔐 PLAYFAIR CIPHER", font=("Arial", 24, "bold"))
+judul = ctk.CTkLabel(app, text="🔐 PLAYFAIR CIPHER", font=("Roboto", 24, "bold"))
 judul.pack(pady=(12, 8))
 
 # ----- FRAME KEY -----
 frame_key = ctk.CTkFrame(app)
 frame_key.pack(pady=5, padx=20, fill="x")
 
-label_key = ctk.CTkLabel(frame_key, text="🔑 Key:", font=("Arial", 13, "bold"))
+label_key = ctk.CTkLabel(frame_key, text="🔑 Key:", font=("Roboto", 13, "bold"))
 label_key.pack(side="left", padx=(15, 10), pady=10)
 
-entry_key = ctk.CTkEntry(frame_key, placeholder_text="Contoh: MONARCHY", width=350)
+entry_key = ctk.CTkEntry(frame_key, placeholder_text="Contoh: MONARCHY", width=350, font=("Roboto", 12))
 entry_key.pack(side="left", padx=10, pady=10)
 entry_key.bind("<KeyRelease>", update_matriks)
 
 btn_reset = ctk.CTkButton(
     frame_key, text="🔄 Reset", command=reset_semua,
-    width=100, fg_color="#64748b", hover_color="#475569"
+    width=100, fg_color="#64748b", hover_color="#475569",
 )
 btn_reset.pack(side="right", padx=15, pady=10)
 
@@ -401,7 +461,7 @@ frame_file.pack(pady=5, padx=20, fill="x")
 btn_upload = ctk.CTkButton(frame_file, text="📂 Upload File .txt", command=upload_file, width=180)
 btn_upload.pack(side="left", padx=(15, 10), pady=10)
 
-label_file = ctk.CTkLabel(frame_file, text="Belum ada file dipilih", font=("Arial", 11))
+label_file = ctk.CTkLabel(frame_file, text="Belum ada file dipilih", font=("Roboto", 11))
 label_file.pack(side="left", padx=10, pady=10)
 
 # ----- AREA UTAMA -----
@@ -412,16 +472,16 @@ frame_utama.pack(pady=10, padx=20, fill="both", expand=True)
 frame_kiri = ctk.CTkFrame(frame_utama, width=350)
 frame_kiri.pack(side="left", fill="both", expand=True, padx=(10, 5), pady=10)
 
-label_input = ctk.CTkLabel(frame_kiri, text="📥 Input", font=("Arial", 12, "bold"))
+label_input = ctk.CTkLabel(frame_kiri, text="📥 Input", font=("Roboto", 12, "bold"))
 label_input.pack(pady=(10, 5))
 
-textbox_input = ctk.CTkTextbox(frame_kiri, wrap="word", height=140)
+textbox_input = ctk.CTkTextbox(frame_kiri, wrap="word", height=140, font=("Roboto", 12))
 textbox_input.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
-label_output = ctk.CTkLabel(frame_kiri, text="📤 Output", font=("Arial", 12, "bold"))
+label_output = ctk.CTkLabel(frame_kiri, text="📤 Output", font=("Roboto", 12, "bold"))
 label_output.pack(pady=(10, 5))
 
-textbox_output = ctk.CTkTextbox(frame_kiri, wrap="word", height=140)
+textbox_output = ctk.CTkTextbox(frame_kiri, wrap="word", height=140, font=("Roboto", 12))
 textbox_output.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
 # Tengah
@@ -429,7 +489,7 @@ frame_tengah = ctk.CTkFrame(frame_utama, width=380)
 frame_tengah.pack(side="left", fill="y", padx=5, pady=10)
 frame_tengah.pack_propagate(False)
 
-label_matriks_judul = ctk.CTkLabel(frame_tengah, text="🔲 Matriks 5x5", font=("Arial", 13, "bold"))
+label_matriks_judul = ctk.CTkLabel(frame_tengah, text="🔲 Matriks 5x5", font=("Roboto", 13, "bold"))
 label_matriks_judul.pack(pady=(10, 5))
 
 frame_grid = ctk.CTkFrame(frame_tengah, fg_color="transparent")
@@ -440,14 +500,14 @@ for i in range(5):
     for j in range(5):
         lbl = ctk.CTkLabel(
             frame_grid, text="?", width=48, height=48,
-            font=("Arial", 18, "bold"),
-            fg_color=WARNA_DEFAULT, corner_radius=6, text_color="white"
+            font=("Roboto", 18, "bold"),
+            fg_color=WARNA_DEFAULT, corner_radius=6, text_color="white",
         )
         lbl.grid(row=i, column=j, padx=2, pady=2)
         baris_labels.append(lbl)
     label_matriks_cells.append(baris_labels)
 
-label_detail_judul = ctk.CTkLabel(frame_tengah, text="🔍 Detail Bigram", font=("Arial", 12, "bold"))
+label_detail_judul = ctk.CTkLabel(frame_tengah, text="🔍 Detail Bigram", font=("Roboto", 12, "bold"))
 label_detail_judul.pack(pady=(15, 5))
 
 frame_detail = ctk.CTkFrame(frame_tengah, border_width=2, border_color="#475569", corner_radius=8)
@@ -456,7 +516,7 @@ frame_detail.pack(fill="x", padx=15, pady=5)
 label_detail = ctk.CTkLabel(
     frame_detail,
     text="Klik salah satu langkah\ndi panel kanan untuk detail.",
-    font=("Consolas", 11), justify="left", text_color="gray"
+    font=("Roboto", 11), justify="left", text_color="gray",
 )
 label_detail.pack(pady=12, padx=10)
 
@@ -469,24 +529,36 @@ frame_log_list.pack(fill="both", expand=True, padx=5, pady=5)
 
 # ----- AKSI -----
 frame_aksi = ctk.CTkFrame(app)
-frame_aksi.pack(pady=10, padx=20, fill="x")
+frame_aksi.pack(pady=(5, 2), padx=20, fill="x")
 
-btn_enkripsi = ctk.CTkButton(frame_aksi, text="🔒 Enkripsi", command=proses_enkripsi,
-                              fg_color="#2563eb", hover_color="#1d4ed8", width=150)
+btn_enkripsi = ctk.CTkButton(
+    frame_aksi, text="🔒 Enkripsi", command=proses_enkripsi,
+    fg_color="#2563eb", hover_color="#1d4ed8", width=150,
+)
 btn_enkripsi.pack(side="left", padx=15, pady=12)
 
-btn_dekripsi = ctk.CTkButton(frame_aksi, text="🔓 Dekripsi", command=proses_dekripsi,
-                              fg_color="#059669", hover_color="#047857", width=150)
+btn_dekripsi = ctk.CTkButton(
+    frame_aksi, text="🔓 Dekripsi", command=proses_dekripsi,
+    fg_color="#059669", hover_color="#047857", width=150,
+)
 btn_dekripsi.pack(side="left", padx=10, pady=12)
 
-btn_simpan = ctk.CTkButton(frame_aksi, text="💾 Simpan Hasil", command=simpan_hasil,
-                            fg_color="#7c3aed", hover_color="#6d28d9", width=150)
+btn_simpan = ctk.CTkButton(
+    frame_aksi, text="💾 Simpan Hasil", command=simpan_hasil,
+    fg_color="#7c3aed", hover_color="#6d28d9", width=150,
+)
 btn_simpan.pack(side="right", padx=15, pady=12)
 
-# ----- STATUS -----
-label_status = ctk.CTkLabel(app, text="Siap digunakan.", font=("Arial", 11), text_color="gray")
-label_status.pack(pady=(0, 10))
+# ----- STATUS DAN PROGRESS ANIMASI -----
+progress_proses = ctk.CTkProgressBar(app, height=7, progress_color="#3b82f6")
+progress_proses.pack(fill="x", padx=35, pady=(3, 2))
+progress_proses.set(0)
+
+label_status = ctk.CTkLabel(app, text="Siap digunakan.", font=("Roboto", 11), text_color="gray")
+label_status.pack(pady=(0, 8))
+
+app.bind("<Control-Return>", lambda event: proses_enkripsi())
+app.bind("<Control-Shift-Return>", lambda event: proses_dekripsi())
 
 update_matriks()
-
 app.mainloop()
