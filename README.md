@@ -121,7 +121,7 @@ Aplikasi menampilkan aturan yang digunakan pada setiap bigram dan menyorot posis
 
 ```bash
 git clone https://github.com/nandazahran/playfair-cypher-kel4.git
-cd playfair-cipher
+cd playfair-cypher-kel4
 ```
 
 Ganti `USERNAME/playfair-cipher` dengan alamat repository GitHub kamu.
@@ -144,6 +144,12 @@ source .venv/bin/activate
 
 ```powershell
 .venv\Scripts\activate
+```
+
+Jika muncul error `UnauthorizedAccess` atau skrip tidak bisa dijalankan saat mengaktifkan `.venv`:
+
+```powershell
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 ### 3. Instal Dependensi
@@ -208,12 +214,12 @@ Pemisahan ini membuat logika kriptografi lebih mudah dipahami, diuji, dan dikemb
 
 ## 👨‍💻 Author
 
-**Ammar Rizky (M0403241088)** \
+**Aufa Rafli Sofwan Pasya (M0403241133)** \
 **Mickhael Keith R.S (M0403241061)** \
 **Kemas Adirangga Nayar (M0403241043)** \
-**Aufa Rafli Sofwan Pasya (M0403241133)** \
 **Faiz Ariq Satria (M0403241112)** \
 **Muh Arifaushan (M0403241075)** \
+**Muhammad Ammar Rizky (M0403241088)** \
 **Nanda Zahran Syafiq (M0403241098)** \
 **Muhammad Naufal Dzaki Jatmika (M0403241120)** \
 **Ahmad Wildan (M0403241173)**
