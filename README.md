@@ -215,7 +215,7 @@ Pemisahan ini membuat logika kriptografi lebih mudah dipahami, diuji, dan dikemb
 **Faiz Ariq Satria (M0403241112)** \
 **Muh Arifaushan (M0403241075)** \
 **Nanda Zahran Syafiq (M0403241098)** \
-**Masjaw** \
+**Muhammad Naufal Dzaki Jatmika (M0403241120)** \
 **Ahmad Wildan (M0403241173)**
 
 
