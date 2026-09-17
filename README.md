@@ -241,14 +241,3 @@ Pemisahan ini membuat logika kriptografi lebih mudah dipahami, diuji, dan dikemb
 
 
 Computer Science Student
-
-<p>
-  <a href="https://github.com/USERNAME">GitHub Profile</a>
-</p>
-
----
-
-<p align="center">
-  <b>Learn cryptography by seeing how it works.</b><br>
-  Built with Python 🐍
-</p>
