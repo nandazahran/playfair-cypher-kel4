@@ -37,29 +37,8 @@ Tidak hanya melakukan enkripsi dan dekripsi, aplikasi ini juga memungkinkan peng
 
 ### Antarmuka Aplikasi
 
-> Tambahkan screenshot aplikasi pada bagian ini agar pengunjung repository dapat melihat tampilan GUI secara langsung.
+<img width="1302" height="853" alt="image" src="https://github.com/user-attachments/assets/a9f15b31-4402-443c-b6ce-fb3569d548ac" />
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                     PLAYFAIR CIPHER                         │
-│                                                             │
-│  Key: MONARCHY                                               │
-│                                                             │
-│  ┌──────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │ Input        │  │ Matrix 5x5      │  │ Bigram Log      │ │
-│  │              │  │                 │  │                 │ │
-│  │ HELLO WORLD  │  │ M O N A R       │  │ HE → CF         │ │
-│  │              │  │ C H Y B D       │  │ LL → ...        │ │
-│  │              │  │ E F G I K       │  │ LO → ...        │ │
-│  │              │  │ L P Q S T       │  │                 │ │
-│  │              │  │ U V W X Z       │  │                 │ │
-│  └──────────────┘  └─────────────────┘  └─────────────────┘ │
-│                                                             │
-│  [Enkripsi] [Dekripsi] [Upload File] [Simpan Hasil] [Reset] │
-└─────────────────────────────────────────────────────────────┘
-```
-
-*Ilustrasi konseptual tata letak aplikasi, bukan screenshot aktual.*
 
 ### Contoh Enkripsi dan Dekripsi
 
