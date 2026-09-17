@@ -227,26 +227,6 @@ Pemisahan ini membuat logika kriptografi lebih mudah dipahami, diuji, dan dikemb
 
 ---
 
-## 🎯 Tujuan Pembelajaran
-
-Proyek ini dibuat sebagai demonstrasi implementasi algoritma kriptografi klasik dengan fokus pada:
-
-* Memahami substitusi bigram dalam Playfair Cipher.
-* Mengimplementasikan algoritma menggunakan Python.
-* Memahami manipulasi matriks dan pencarian posisi karakter.
-* Memisahkan logika inti dari antarmuka grafis.
-* Mengembangkan visualisasi algoritma yang interaktif dan mudah dipahami.
-
----
-
-## ⚠️ Catatan Keamanan
-
-Playfair Cipher merupakan algoritma kriptografi klasik yang tidak aman untuk melindungi data sensitif dalam penggunaan modern.
-
-Proyek ini ditujukan untuk tujuan edukasi dan demonstrasi algoritma, bukan untuk mengamankan informasi rahasia.
-
----
-
 ## 👨‍💻 Author
 
 **Ammar Rizky (M0403241088)** \
